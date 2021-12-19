@@ -54,8 +54,8 @@ if __name__ == '__main__':
             #res = os.system("you-get --debug -l --no-caption \"" + item[0] + "\" -o Contents")
             try:
                 comm = "you-get -l --no-caption \"" + item[0] + "\" -o Contents"
-                res = subprocess.run(comm, shell=True)
-                if res == 0:
+                cp = subprocess.run(comm, shell=True, )
+                if cp.returncode == 0:
                     break
                 else:
                     continue
