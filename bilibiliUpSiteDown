@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os, sys
+import os, sys, subprocess
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -51,9 +51,18 @@ if __name__ == '__main__':
     for item in out:
         print("Start download " + item[1])
         while True:
-            res = os.system("you-get -l --no-caption \"" + item[0] + "\" -o Contents")
-            if res == 0:
-                break
+            #res = os.system("you-get --debug -l --no-caption \"" + item[0] + "\" -o Contents")
+            try:
+                comm = "you-get -l --no-caption \"" + item[0] + "\" -o Contents"
+                res = subprocess.run(comm, shell=True)
+                if res == 0:
+                    break
+                else:
+                    continue
+            except KeyboardInterrupt:
+                print('Awakened')
+                exit(1)
         print("Finished download " + item[1])
         outfile.write(item[0] + "\n")
         outfile.flush()
+
