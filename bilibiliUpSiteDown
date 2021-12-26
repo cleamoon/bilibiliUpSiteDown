@@ -14,17 +14,9 @@ if __name__ == '__main__':
     p.add_argument('-c', '--cookie', metavar='cookie', type=str)
     p.add_argument('-f', '--fresh', action='store_true')
     args = p.parse_args()
-    print(args)
     upId = args.ID
-    print(upId)
     cookie = args.cookie
     fresh = args.fresh
-    print(fresh)
-    #if len(sys.argv) != 2:
-    #    print("Usage:\n\tbilibiliUpSiteDown <numberIdOfaUp>")
-    #    exit(0)
-
-    #upId = sys.argv[1]
 
     if os.path.exists(upId + ".txt"):
         os.remove(upId + ".txt")
