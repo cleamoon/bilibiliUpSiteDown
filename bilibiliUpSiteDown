@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os, sys, subprocess
+from argparse import ArgumentParser, FileType
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,17 +9,28 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage:\n\tbilibiliUpSiteDown <numberIdOfaUp>")
-        exit(0)
+    p = ArgumentParser(description="download all videos of a video uploader.")
+    p.add_argument('ID', metavar='uploader\'s ID', type=str)
+    p.add_argument('-c', '--cookie', metavar='cookie', type=str)
+    p.add_argument('-f', '--fresh', action='store_true')
+    args = p.parse_args()
+    print(args)
+    upId = args.ID
+    print(upId)
+    cookie = args.cookie
+    fresh = args.fresh
+    print(fresh)
+    #if len(sys.argv) != 2:
+    #    print("Usage:\n\tbilibiliUpSiteDown <numberIdOfaUp>")
+    #    exit(0)
 
-    upId = sys.argv[1]
+    #upId = sys.argv[1]
 
     if os.path.exists(upId + ".txt"):
         os.remove(upId + ".txt")
     outfile = open(upId + ".txt", "w+")
     out = []
-
+    
     chrome_options = Options()
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-gpu")
@@ -54,7 +66,7 @@ if __name__ == '__main__':
             #res = os.system("you-get --debug -l --no-caption \"" + item[0] + "\" -o Contents")
             try:
                 comm = "you-get -l --no-caption \"" + item[0] + "\" -o Contents"
-                cp = subprocess.run(comm, shell=True, )
+                cp = subprocess.run(comm, shell=True)
                 if cp.returncode == 0:
                     break
                 else:
