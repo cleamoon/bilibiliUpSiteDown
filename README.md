@@ -1,5 +1,5 @@
 # bilibiliUpSiteDown
-Downloader to download all videos of a video uploader.
+Downloader to download all videos of a video uploader on `Bilibili.com`.
 
 ## Requirement
 * Python 
