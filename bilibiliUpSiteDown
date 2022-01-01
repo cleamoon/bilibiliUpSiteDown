@@ -17,13 +17,17 @@ if __name__ == '__main__':
     upId = args.ID
     cookie = args.cookie
     fresh = args.fresh
-    
+    downloaded = []
+   
     if fresh:
         if os.path.exists(upId + ".txt"):
             os.remove(upId + ".txt")
         outfile = open(upId + ".txt", "w+")
     else:
         outfile = open(upId + ".txt", "a+")
+        lines = outfile.readlines()
+        for line in lines:
+            downloaded.append(line)
 
     out = []
     
@@ -59,6 +63,10 @@ if __name__ == '__main__':
 
     # Start downloading
     for item in out:
+        if not fresh:
+            if item[0] in downloaded:
+                print("Finished download " + item[1])
+                continue
         print("Start download " + item[1])
         while True:
             #res = os.system("you-get --debug -l --no-caption \"" + item[0] + "\" -o Contents")
