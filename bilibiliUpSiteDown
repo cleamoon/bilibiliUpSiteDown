@@ -24,10 +24,14 @@ if __name__ == '__main__':
             os.remove(upId + ".txt")
         outfile = open(upId + ".txt", "w+")
     else:
-        outfile = open(upId + ".txt", "a+")
+        if os.path.exists(upId + ".txt"):
+            outfile = open(upId + ".txt", "a+")
+        else:
+            outfile = open(upId + ".txt", "w+")
+        outfile.seek(0, 0)
         lines = outfile.readlines()
         for line in lines:
-            downloaded.append(line)
+            downloaded.append(line[:-1])
 
     out = []
     
@@ -87,3 +91,4 @@ if __name__ == '__main__':
         outfile.write(item[0] + "\n")
         outfile.flush()
 
+print("All finished")
