@@ -93,6 +93,7 @@ if __name__ == "__main__":
         if "bangumi" in item[0]:
             print("Skip " + item[1])
             continue
+
         print("Start download " + item[1])
         print("URL: " + item[0])
         
@@ -117,8 +118,6 @@ if __name__ == "__main__":
                 cp = subprocess.run(comm, shell=True)
                 if cp.returncode == 0:
                     break
-                else:
-                    continue
             except KeyboardInterrupt:
                 print("Awakened")
                 exit(1)
