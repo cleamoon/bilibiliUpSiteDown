@@ -1,94 +1,129 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-import os, sys, subprocess
-from argparse import ArgumentParser, FileType
+import os, subprocess
+from argparse import ArgumentParser
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     p = ArgumentParser(description="download all videos of a video uploader.")
-    p.add_argument('ID', metavar='uploader\'s ID', type=str)
-    p.add_argument('-c', '--cookie', metavar='cookie', type=str)
-    p.add_argument('-f', '--fresh', action='store_true')
+    p.add_argument("ID", metavar="uploader's ID", type=str)
+    p.add_argument("-c", "--cookie", metavar="cookie", type=str)
+    p.add_argument("-f", "--fresh", action="store_true")
+    p.add_argument("-e", "--end", metavar="end url", type=str, default="")
     args = p.parse_args()
     upId = args.ID
     cookie = args.cookie
     fresh = args.fresh
+    end = args.end
     downloaded = []
-   
+
     if fresh:
         if os.path.exists(upId + ".txt"):
             os.remove(upId + ".txt")
-        outfile = open(upId + ".txt", "w+")
+        finishedUrlDb = open(upId + ".txt", "w+")
     else:
         if os.path.exists(upId + ".txt"):
-            outfile = open(upId + ".txt", "a+")
+            finishedUrlDb = open(upId + ".txt", "a+")
         else:
-            outfile = open(upId + ".txt", "w+")
-        outfile.seek(0, 0)
-        lines = outfile.readlines()
+            finishedUrlDb = open(upId + ".txt", "w+")
+        finishedUrlDb.seek(0, 0)
+        lines = finishedUrlDb.readlines()
         for line in lines:
             downloaded.append(line[:-1])
 
-    out = []
-    
+    urlList = []
+
     chrome_options = Options()
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox") # linux only
+    chrome_options.add_argument("--no-sandbox")  # linux only
     chrome_options.add_argument("--headless")
 
+    done = False
+
     # Start parsing
-    for i in range(1, 9999):
-        with webdriver.Chrome(options=chrome_options) as driver:
-            wait = WebDriverWait(driver, 10)
-            driver.get("https://space.bilibili.com/" + upId + "/video?tid=0&page=" + str(i) + "&keyword=&order=pubdate")
-            spans = driver.find_elements(By.TAG_NAME, "span")
-            done = False
-            for span in spans:
-                if span.get_attribute("class") is not None and span.get_attribute("class") == "count":
-                    if span.text == "0":
-                        print("Scaning finished")
-                        done = True
-                        break
-            if done: 
+    with webdriver.Chrome(options=chrome_options) as driver:
+        for i in range(1, int(1e9)):
+            if done:
                 break
+
+            wait = WebDriverWait(driver, 3)
+
+            driver.get(
+                "https://space.bilibili.com/"
+                + upId
+                + "/video?tid=0&pn="
+                + str(i)
+                + "&keyword=&order=pubdate"
+            )
+            spans = driver.find_elements(By.TAG_NAME, "span")
+            for span in spans:
+                if (span.get_attribute("class") == "count") and (span.text == "0"):
+                    print("Scaning finished")
+                    done = True
+                    break
             tags = driver.find_elements(By.TAG_NAME, "a")
             for tag in tags:
-                if tag.get_attribute("class") is not None and tag.get_attribute("class") == "title" and (tag.get_attribute("href"), tag.get_attribute("title")) not in out:
+                if (
+                    tag.get_attribute("class") is not None
+                    and tag.get_attribute("class") == "title"
+                    and (tag.get_attribute("href"), tag.get_attribute("title"))
+                    not in urlList
+                ):
                     print("Found " + tag.get_attribute("title"))
-                    out.append((tag.get_attribute("href"), tag.get_attribute("title")))
-            driver.quit()
+                    url = tag.get_attribute("href")
+                    title = tag.get_attribute("title")
+                    if url == end:
+                        done = True
+                        break
+                    urlList.append((url, title))
+        driver.quit()
 
-    out.reverse()
+    urlList.reverse()
 
     # Start downloading
-    for item in out:
-        if not fresh:
-            if item[0] in downloaded:
-                print("Finished download " + item[1])
-                continue
+    for item in urlList:
+        if not fresh and item[0] in downloaded:
+            print("Finished download " + item[1])
+            continue
+        if "bangumi" in item[0]:
+            print("Skip " + item[1])
+            continue
         print("Start download " + item[1])
+        print("URL: " + item[0])
+        
         while True:
-            #res = os.system("you-get --debug -l --no-caption \"" + item[0] + "\" -o Contents")
             try:
                 if cookie is None:
-                    comm = "you-get -l --no-caption \"" + item[0] + "\" -o Contents"
-                else: 
-                    comm = "you-get -l --no-caption \"" + item[0] + "\" -o Contents -c " + cookie
+                    comm = (
+                        'yt-dlp --yes-playlist '
+                        + ' "'
+                        + item[0]
+                        + '" -P Contents'
+                    )
+                else:
+                    comm = (
+                        'yt-dlp --yes-playlist '
+                        + ' --cookies '
+                        + cookie
+                        + ' "'
+                        + item[0]
+                        + '" -P Contents'
+                    )
                 cp = subprocess.run(comm, shell=True)
                 if cp.returncode == 0:
                     break
                 else:
                     continue
             except KeyboardInterrupt:
-                print('Awakened')
+                print("Awakened")
                 exit(1)
         print("Finished download " + item[1])
-        outfile.write(item[0] + "\n")
-        outfile.flush()
+        finishedUrlDb.write(item[0] + "\n")
+        finishedUrlDb.flush()
 
 print("All finished")
