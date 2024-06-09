@@ -8,7 +8,12 @@ Downloader to download all videos of a video uploader on `Bilibili.com`.
 * You-get
 
 ## Usage: 
-bilibiliUpSiteDown <numberIdOfaUp>
+
+```shell
+source venv/bin/activate
+pip3 install -r requirements.txt
+python3 ./bilibiliUpSiteDown <numberIdOfaUp>
+```
 
 ## TODO:
 * Login support
